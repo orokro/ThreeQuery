@@ -1,0 +1,27 @@
+{
+  "name": "three-query",
+  "version": "0.9.0",
+  "description": "ID & Classname based querrying for GLBs in ThreeJS from Blender",
+  "main": "ThreeQuery.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orokro/ThreeQuery.git"
+  },
+  "keywords": [
+    "threejs",
+    "3js",
+    "blender",
+    "gltf",
+    "glb",
+    "query"
+  ],
+  "author": "Greg Miller",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/orokro/ThreeQuery/issues"
+  },
+  "homepage": "https://github.com/orokro/ThreeQuery#readme"
+}
