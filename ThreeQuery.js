@@ -470,6 +470,7 @@ class ThreeQueryResult {
 	class() {
 		return [...this.objects[0]?._threeQueryMeta?.classes || []];
 	}
+	
 
 	/**
 	 * Gets or sets the parent of the objects
