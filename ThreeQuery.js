@@ -5,6 +5,11 @@
 	First take on a jQuery-like query system for Three.js objects.
 */
 
+// imports
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+
 /**
  * Main class
  */
@@ -513,5 +518,100 @@ class ThreeQueryResult {
 		return this.objects;
 	}
 }
+
+/**
+ * Creates a basic Three.js scene with optional helpers.
+ * 
+ * @param {HTMLElement} container - DOM element to mount renderer into.
+ * @param {Object} options - Optional configuration
+ * @returns {Object} scene setup (scene, renderer, controls, cube, lights, etc.)
+ */
+ThreeQuery.createScene = function(container, {
+		autoSize = true,
+		autoRender = true,
+		onRender = null,
+		addCube = false,
+		addLights = false,
+		addControls = false
+	} = {}){
+
+	// Basic setup
+	const scene = new THREE.Scene();
+	const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+	camera.position.set(2, 2, 3);
+
+	// Mount renderer to the container
+	const renderer = new THREE.WebGLRenderer({ antialias: true });
+	renderer.setSize(container.clientWidth, container.clientHeight);
+	container.appendChild(renderer.domElement);
+
+	// Resize logic
+	let resizeObserver = null;
+	if (autoSize) {
+		const resize = () => {
+			const width = container.clientWidth;
+			const height = container.clientHeight;
+			camera.aspect = width / height;
+			camera.updateProjectionMatrix();
+			renderer.setSize(width, height);
+			if (autoRender) renderer.render(scene, camera);
+		};
+
+		// Always use ResizeObserver — it's reliable
+		// (as opposed to window resize)
+		resizeObserver = new ResizeObserver(resize);
+		resizeObserver.observe(container);
+	}
+
+	// Controls
+	let controls = null;
+	if (addControls) {
+		controls = new OrbitControls(camera, renderer.domElement);
+		controls.enableDamping = true;
+	}
+
+	// Lights
+	let lights = null;
+	if (addLights) {
+		const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+		directionalLight.position.set(5, 5, 5);
+		scene.add(ambientLight, directionalLight);
+		lights = { ambientLight, directionalLight };
+	}
+
+	// Cube
+	let cube = null;
+	if (addCube) {
+		const geometry = new THREE.BoxGeometry();
+		const material = new THREE.MeshStandardMaterial({ color: 'red' });
+		const object = new THREE.Mesh(geometry, material);
+		object.userData.name = '#defaultCube .red .box';
+		scene.add(object);
+		cube = { geometry, material, object };
+	}
+
+	// Render loop
+	if (autoRender) {
+		function animate() {
+			requestAnimationFrame(animate);
+			if (onRender) onRender();
+			if (controls) controls.update();
+			renderer.render(scene, camera);
+		}
+		animate();
+	}
+
+	// Return scene components
+	return {
+		scene,
+		renderer,
+		camera,
+		controls,
+		cube,
+		lights,
+		resizeObserver
+	};
+};
 
 export default ThreeQuery;
