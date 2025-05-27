@@ -8,7 +8,7 @@
 // imports
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import ThreeQuery from '../dist/three-query.es.js'; // Or CDN if testing published version
+import ThreeQuery from '../dist/three-query.es.js';
 
 /**
  * Makes a ThreeJS scene & adds a red cube with ThreeQuery.
