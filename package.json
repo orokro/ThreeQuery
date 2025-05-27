@@ -1,11 +1,18 @@
 {
 	"name": "three-query",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"description": "ID & Classname based querying for GLBs in ThreeJS from Blender",
-	"main": "ThreeQuery.js",
+	"main": "dist/three-query.cjs.js",
+	"module": "dist/three-query.es.js",
+	"unpkg": "dist/three-query.global.js",
 	"scripts": {
+		"build": "vite build",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/orokro/ThreeQuery.git"
@@ -23,5 +30,13 @@
 	"bugs": {
 		"url": "https://github.com/orokro/ThreeQuery/issues"
 	},
-	"homepage": "https://github.com/orokro/ThreeQuery#readme"
+	"homepage": "https://github.com/orokro/ThreeQuery#readme",
+	"peerDependencies": {
+		"three": "^0.176.0"
+	},
+	"devDependencies": {
+		"three": "^0.176.0",
+		"vite": "^6.3.5",
+		"vite-plugin-dts": "^4.5.4"
+	}
 }
