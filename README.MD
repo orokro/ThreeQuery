@@ -27,7 +27,7 @@ npm install three
 
 ```js
 // ThreeQuery.js - Drop this in your src directory
-import ThreeQuery from './ThreeQuery.js';
+import ThreeQuery from 'three-query';
 ```
 
 ---
@@ -57,8 +57,20 @@ ThreeQuery will parse names using:
 
 ### 📋 Basic Setup
 
+ThreeQuery comes with a static helper method, createScene which can make a boilerplate scene, with some options like handling if it's parent container resizes, or adding default lights or test cube.
+
 ```js
-import ThreeQuery from './ThreeQuery.js';
+import ThreeQuery from 'three-query';
+
+// Use the built-in helper to create the scene
+const container = document.getElementById('app');
+const { scene } = ThreeQuery.createScene(container, {
+	autoSize: true,
+	autoRender: true,
+	addCube: true,
+	addLights: true,
+	addControls: true,
+});
 
 const $ = new ThreeQuery(scene);
 ```
@@ -176,6 +188,16 @@ $('.enemy').material({ color: '#ff0000', opacity: 0.5 });
 import ThreeQuery from './ThreeQuery.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
+// Use the built-in helper to create the scene
+const container = document.getElementById('app');
+const { scene, lights, controls } = ThreeQuery.createScene(container, {
+	autoSize: true,
+	autoRender: true,
+	addLights: true,
+	addControls: true,
+});
+
+// make new instance of ThreeQuery
 const $ = new ThreeQuery(scene);
 
 // Setup loader
@@ -216,8 +238,6 @@ Matching results are wrapped in a `ThreeQueryResult` object that allows jQuery-s
 - Support advanced CSS selectors (`>`, `:not()`, etc.)
 - Event-based API (`.on('click')`)
 - TypeScript typings
-- Plugin support
-- NPM release
 
 ---
 
