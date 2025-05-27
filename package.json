@@ -6,6 +6,7 @@
 	"module": "dist/three-query.es.js",
 	"unpkg": "dist/three-query.global.js",
 	"scripts": {
+		"demo": "vite demo",
 		"build": "vite build",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
