@@ -35,6 +35,9 @@ class ThreeQuery {
 
 		// scan our initial scene for IDs and class names
 		this.scan(scene);
+
+		// make sure this is bound to our instance
+		this.$ = this.$.bind(this);
 	}
 
 	
@@ -171,6 +174,7 @@ class ThreeQuery {
 		// kick off the recursive search & pack results into a new ThreeQueryResult object
 		return new ThreeQueryResult([...search(new Set([context]), 0)], this);
 	}
+
 
 	/**
 	 * Method to check of a ThreeJS object matches a CSS-like selector
@@ -515,6 +519,12 @@ class ThreeQueryResult {
 	 * @returns {Array} - array of objects in this result
 	 */
 	object() {
+
+		// if we only have one object, return it directly
+		if(this.objects.length === 1)
+			return this.objects[0];
+
+		// otherwise, return the array of objects
 		return this.objects;
 	}
 }

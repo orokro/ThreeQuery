@@ -461,7 +461,7 @@ class w {
    * @param {scene} scene - the ThreeJS scene
    */
   constructor(t) {
-    this.scene = t, this.idMap = /* @__PURE__ */ new Map(), this.classMap = /* @__PURE__ */ new Map(), this.loaders = /* @__PURE__ */ new Map(), this.scan(t);
+    this.scene = t, this.idMap = /* @__PURE__ */ new Map(), this.classMap = /* @__PURE__ */ new Map(), this.loaders = /* @__PURE__ */ new Map(), this.scan(t), this.$ = this.$.bind(this);
   }
   /**
    * Add a loader we can use for format types
@@ -752,7 +752,7 @@ class D {
    * @returns {Array} - array of objects in this result
    */
   object() {
-    return this.objects;
+    return this.objects.length === 1 ? this.objects[0] : this.objects;
   }
 }
 w.createScene = function(o, {
@@ -777,15 +777,15 @@ w.createScene = function(o, {
   }
   let P = null;
   h && (P = new Z(c, d.domElement), P.enableDamping = !0);
-  let R = null;
+  let j = null;
   if (a) {
     const _ = new y.AmbientLight(16777215, 0.6), f = new y.DirectionalLight(16777215, 0.8);
-    f.position.set(5, 5, 5), r.add(_, f), R = { ambientLight: _, directionalLight: f };
+    f.position.set(5, 5, 5), r.add(_, f), j = { ambientLight: _, directionalLight: f };
   }
-  let j = null;
+  let R = null;
   if (i) {
     const _ = new y.BoxGeometry(), f = new y.MeshStandardMaterial({ color: "red" }), g = new y.Mesh(_, f);
-    g.userData.name = "#defaultCube .red .box", r.add(g), j = { geometry: _, material: f, object: g };
+    g.userData.name = "#defaultCube .red .box", r.add(g), R = { geometry: _, material: f, object: g };
   }
   if (e) {
     let _ = function() {
@@ -798,8 +798,8 @@ w.createScene = function(o, {
     renderer: d,
     camera: c,
     controls: P,
-    cube: j,
-    lights: R,
+    cube: R,
+    lights: j,
     resizeObserver: b
   };
 };
