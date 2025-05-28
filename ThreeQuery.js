@@ -538,7 +538,7 @@ ThreeQuery.createScene = function(container, {
 	// Basic setup
 	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-	camera.position.set(2, 2, 3);
+	camera.position.set(0, 0, 3);
 
 	// Mount renderer to the container
 	const renderer = new THREE.WebGLRenderer({ antialias: true });
