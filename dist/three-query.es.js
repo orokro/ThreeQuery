@@ -1,6 +1,6 @@
-import * as y from "three";
-import { Controls as N, Vector3 as m, MOUSE as M, TOUCH as E, Quaternion as A, Spherical as L, Vector2 as u, Ray as Y, Plane as z, MathUtils as U } from "three";
-const C = { type: "change" }, O = { type: "start" }, k = { type: "end" }, T = new Y(), x = new z(), I = Math.cos(70 * U.DEG2RAD), l = new m(), p = 2 * Math.PI, n = {
+import * as f from "three";
+import { Controls as N, Vector3 as m, MOUSE as P, TOUCH as M, Quaternion as A, Spherical as L, Vector2 as u, Ray as Y, Plane as z, MathUtils as U } from "three";
+const C = { type: "change" }, O = { type: "start" }, k = { type: "end" }, w = new Y(), x = new z(), I = Math.cos(70 * U.DEG2RAD), c = new m(), p = 2 * Math.PI, r = {
   NONE: -1,
   ROTATE: 0,
   DOLLY: 1,
@@ -18,7 +18,7 @@ class Z extends N {
    * @param {?HTMLDOMElement} domElement - The HTML element used for event listeners.
    */
   constructor(t, e = null) {
-    super(t, e), this.state = n.NONE, this.target = new m(), this.cursor = new m(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: M.ROTATE, MIDDLE: M.DOLLY, RIGHT: M.PAN }, this.touches = { ONE: E.ROTATE, TWO: E.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new m(), this._lastQuaternion = new A(), this._lastTargetPosition = new m(), this._quat = new A().setFromUnitVectors(t.up, new m(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new L(), this._sphericalDelta = new L(), this._scale = 1, this._panOffset = new m(), this._rotateStart = new u(), this._rotateEnd = new u(), this._rotateDelta = new u(), this._panStart = new u(), this._panEnd = new u(), this._panDelta = new u(), this._dollyStart = new u(), this._dollyEnd = new u(), this._dollyDelta = new u(), this._dollyDirection = new m(), this._mouse = new u(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = K.bind(this), this._onPointerDown = v.bind(this), this._onPointerUp = H.bind(this), this._onContextMenu = V.bind(this), this._onMouseWheel = W.bind(this), this._onKeyDown = q.bind(this), this._onTouchStart = Q.bind(this), this._onTouchMove = G.bind(this), this._onMouseDown = X.bind(this), this._onMouseMove = F.bind(this), this._interceptControlDown = B.bind(this), this._interceptControlUp = $.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
+    super(t, e), this.state = r.NONE, this.target = new m(), this.cursor = new m(), this.minDistance = 0, this.maxDistance = 1 / 0, this.minZoom = 0, this.maxZoom = 1 / 0, this.minTargetRadius = 0, this.maxTargetRadius = 1 / 0, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -1 / 0, this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = 0.05, this.enableZoom = !0, this.zoomSpeed = 1, this.enableRotate = !0, this.rotateSpeed = 1, this.keyRotateSpeed = 1, this.enablePan = !0, this.panSpeed = 1, this.screenSpacePanning = !0, this.keyPanSpeed = 7, this.zoomToCursor = !1, this.autoRotate = !1, this.autoRotateSpeed = 2, this.keys = { LEFT: "ArrowLeft", UP: "ArrowUp", RIGHT: "ArrowRight", BOTTOM: "ArrowDown" }, this.mouseButtons = { LEFT: P.ROTATE, MIDDLE: P.DOLLY, RIGHT: P.PAN }, this.touches = { ONE: M.ROTATE, TWO: M.DOLLY_PAN }, this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.zoom0 = this.object.zoom, this._domElementKeyEvents = null, this._lastPosition = new m(), this._lastQuaternion = new A(), this._lastTargetPosition = new m(), this._quat = new A().setFromUnitVectors(t.up, new m(0, 1, 0)), this._quatInverse = this._quat.clone().invert(), this._spherical = new L(), this._sphericalDelta = new L(), this._scale = 1, this._panOffset = new m(), this._rotateStart = new u(), this._rotateEnd = new u(), this._rotateDelta = new u(), this._panStart = new u(), this._panEnd = new u(), this._panDelta = new u(), this._dollyStart = new u(), this._dollyEnd = new u(), this._dollyDelta = new u(), this._dollyDirection = new m(), this._mouse = new u(), this._performCursorZoom = !1, this._pointers = [], this._pointerPositions = {}, this._controlActive = !1, this._onPointerMove = K.bind(this), this._onPointerDown = v.bind(this), this._onPointerUp = H.bind(this), this._onContextMenu = V.bind(this), this._onMouseWheel = W.bind(this), this._onKeyDown = q.bind(this), this._onTouchStart = Q.bind(this), this._onTouchMove = G.bind(this), this._onMouseDown = X.bind(this), this._onMouseMove = F.bind(this), this._interceptControlDown = B.bind(this), this._interceptControlUp = $.bind(this), this.domElement !== null && this.connect(this.domElement), this.update();
   }
   connect(t) {
     super.connect(t), this.domElement.addEventListener("pointerdown", this._onPointerDown), this.domElement.addEventListener("pointercancel", this._onPointerUp), this.domElement.addEventListener("contextmenu", this._onContextMenu), this.domElement.addEventListener("wheel", this._onMouseWheel, { passive: !1 }), this.domElement.getRootNode().addEventListener("keydown", this._interceptControlDown, { passive: !0, capture: !0 }), this.domElement.style.touchAction = "none";
@@ -79,40 +79,40 @@ class Z extends N {
    * was called, or the initial state.
    */
   reset() {
-    this.target.copy(this.target0), this.object.position.copy(this.position0), this.object.zoom = this.zoom0, this.object.updateProjectionMatrix(), this.dispatchEvent(C), this.update(), this.state = n.NONE;
+    this.target.copy(this.target0), this.object.position.copy(this.position0), this.object.zoom = this.zoom0, this.object.updateProjectionMatrix(), this.dispatchEvent(C), this.update(), this.state = r.NONE;
   }
   update(t = null) {
     const e = this.object.position;
-    l.copy(e).sub(this.target), l.applyQuaternion(this._quat), this._spherical.setFromVector3(l), this.autoRotate && this.state === n.NONE && this._rotateLeft(this._getAutoRotationAngle(t)), this.enableDamping ? (this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor, this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor) : (this._spherical.theta += this._sphericalDelta.theta, this._spherical.phi += this._sphericalDelta.phi);
+    c.copy(e).sub(this.target), c.applyQuaternion(this._quat), this._spherical.setFromVector3(c), this.autoRotate && this.state === r.NONE && this._rotateLeft(this._getAutoRotationAngle(t)), this.enableDamping ? (this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor, this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor) : (this._spherical.theta += this._sphericalDelta.theta, this._spherical.phi += this._sphericalDelta.phi);
     let s = this.minAzimuthAngle, i = this.maxAzimuthAngle;
     isFinite(s) && isFinite(i) && (s < -Math.PI ? s += p : s > Math.PI && (s -= p), i < -Math.PI ? i += p : i > Math.PI && (i -= p), s <= i ? this._spherical.theta = Math.max(s, Math.min(i, this._spherical.theta)) : this._spherical.theta = this._spherical.theta > (s + i) / 2 ? Math.max(s, this._spherical.theta) : Math.min(i, this._spherical.theta)), this._spherical.phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, this._spherical.phi)), this._spherical.makeSafe(), this.enableDamping === !0 ? this.target.addScaledVector(this._panOffset, this.dampingFactor) : this.target.add(this._panOffset), this.target.sub(this.cursor), this.target.clampLength(this.minTargetRadius, this.maxTargetRadius), this.target.add(this.cursor);
     let a = !1;
     if (this.zoomToCursor && this._performCursorZoom || this.object.isOrthographicCamera)
       this._spherical.radius = this._clampDistance(this._spherical.radius);
     else {
-      const h = this._spherical.radius;
-      this._spherical.radius = this._clampDistance(this._spherical.radius * this._scale), a = h != this._spherical.radius;
+      const n = this._spherical.radius;
+      this._spherical.radius = this._clampDistance(this._spherical.radius * this._scale), a = n != this._spherical.radius;
     }
-    if (l.setFromSpherical(this._spherical), l.applyQuaternion(this._quatInverse), e.copy(this.target).add(l), this.object.lookAt(this.target), this.enableDamping === !0 ? (this._sphericalDelta.theta *= 1 - this.dampingFactor, this._sphericalDelta.phi *= 1 - this.dampingFactor, this._panOffset.multiplyScalar(1 - this.dampingFactor)) : (this._sphericalDelta.set(0, 0, 0), this._panOffset.set(0, 0, 0)), this.zoomToCursor && this._performCursorZoom) {
-      let h = null;
+    if (c.setFromSpherical(this._spherical), c.applyQuaternion(this._quatInverse), e.copy(this.target).add(c), this.object.lookAt(this.target), this.enableDamping === !0 ? (this._sphericalDelta.theta *= 1 - this.dampingFactor, this._sphericalDelta.phi *= 1 - this.dampingFactor, this._panOffset.multiplyScalar(1 - this.dampingFactor)) : (this._sphericalDelta.set(0, 0, 0), this._panOffset.set(0, 0, 0)), this.zoomToCursor && this._performCursorZoom) {
+      let n = null;
       if (this.object.isPerspectiveCamera) {
-        const r = l.length();
-        h = this._clampDistance(r * this._scale);
-        const c = r - h;
-        this.object.position.addScaledVector(this._dollyDirection, c), this.object.updateMatrixWorld(), a = !!c;
+        const h = c.length();
+        n = this._clampDistance(h * this._scale);
+        const l = h - n;
+        this.object.position.addScaledVector(this._dollyDirection, l), this.object.updateMatrixWorld(), a = !!l;
       } else if (this.object.isOrthographicCamera) {
-        const r = new m(this._mouse.x, this._mouse.y, 0);
-        r.unproject(this.object);
-        const c = this.object.zoom;
-        this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), this.object.updateProjectionMatrix(), a = c !== this.object.zoom;
+        const h = new m(this._mouse.x, this._mouse.y, 0);
+        h.unproject(this.object);
+        const l = this.object.zoom;
+        this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), this.object.updateProjectionMatrix(), a = l !== this.object.zoom;
         const d = new m(this._mouse.x, this._mouse.y, 0);
-        d.unproject(this.object), this.object.position.sub(d).add(r), this.object.updateMatrixWorld(), h = l.length();
+        d.unproject(this.object), this.object.position.sub(d).add(h), this.object.updateMatrixWorld(), n = c.length();
       } else
         console.warn("WARNING: OrbitControls.js encountered an unknown camera type - zoom to cursor disabled."), this.zoomToCursor = !1;
-      h !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(h).add(this.object.position) : (T.origin.copy(this.object.position), T.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(T.direction)) < I ? this.object.lookAt(this.target) : (x.setFromNormalAndCoplanarPoint(this.object.up, this.target), T.intersectPlane(x, this.target))));
+      n !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(n).add(this.object.position) : (w.origin.copy(this.object.position), w.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(w.direction)) < I ? this.object.lookAt(this.target) : (x.setFromNormalAndCoplanarPoint(this.object.up, this.target), w.intersectPlane(x, this.target))));
     } else if (this.object.isOrthographicCamera) {
-      const h = this.object.zoom;
-      this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), h !== this.object.zoom && (this.object.updateProjectionMatrix(), a = !0);
+      const n = this.object.zoom;
+      this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), n !== this.object.zoom && (this.object.updateProjectionMatrix(), a = !0);
     }
     return this._scale = 1, this._performCursorZoom = !1, a || this._lastPosition.distanceToSquared(this.object.position) > S || 8 * (1 - this._lastQuaternion.dot(this.object.quaternion)) > S || this._lastTargetPosition.distanceToSquared(this.target) > S ? (this.dispatchEvent(C), this._lastPosition.copy(this.object.position), this._lastQuaternion.copy(this.object.quaternion), this._lastTargetPosition.copy(this.target), !0) : !1;
   }
@@ -130,18 +130,18 @@ class Z extends N {
     this._sphericalDelta.phi -= t;
   }
   _panLeft(t, e) {
-    l.setFromMatrixColumn(e, 0), l.multiplyScalar(-t), this._panOffset.add(l);
+    c.setFromMatrixColumn(e, 0), c.multiplyScalar(-t), this._panOffset.add(c);
   }
   _panUp(t, e) {
-    this.screenSpacePanning === !0 ? l.setFromMatrixColumn(e, 1) : (l.setFromMatrixColumn(e, 0), l.crossVectors(this.object.up, l)), l.multiplyScalar(t), this._panOffset.add(l);
+    this.screenSpacePanning === !0 ? c.setFromMatrixColumn(e, 1) : (c.setFromMatrixColumn(e, 0), c.crossVectors(this.object.up, c)), c.multiplyScalar(t), this._panOffset.add(c);
   }
   // deltaX and deltaY are in pixels; right and down are positive
   _pan(t, e) {
     const s = this.domElement;
     if (this.object.isPerspectiveCamera) {
       const i = this.object.position;
-      l.copy(i).sub(this.target);
-      let a = l.length();
+      c.copy(i).sub(this.target);
+      let a = c.length();
       a *= Math.tan(this.object.fov / 2 * Math.PI / 180), this._panLeft(2 * t * a / s.clientHeight, this.object.matrix), this._panUp(2 * e * a / s.clientHeight, this.object.matrix);
     } else this.object.isOrthographicCamera ? (this._panLeft(t * (this.object.right - this.object.left) / this.object.zoom / s.clientWidth, this.object.matrix), this._panUp(e * (this.object.top - this.object.bottom) / this.object.zoom / s.clientHeight, this.object.matrix)) : (console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled."), this.enablePan = !1);
   }
@@ -155,8 +155,8 @@ class Z extends N {
     if (!this.zoomToCursor)
       return;
     this._performCursorZoom = !0;
-    const s = this.domElement.getBoundingClientRect(), i = t - s.left, a = e - s.top, h = s.width, r = s.height;
-    this._mouse.x = i / h * 2 - 1, this._mouse.y = -(a / r) * 2 + 1, this._dollyDirection.set(this._mouse.x, this._mouse.y, 1).unproject(this.object).sub(this.object.position).normalize();
+    const s = this.domElement.getBoundingClientRect(), i = t - s.left, a = e - s.top, n = s.width, h = s.height;
+    this._mouse.x = i / n * 2 - 1, this._mouse.y = -(a / h) * 2 + 1, this._dollyDirection.set(this._mouse.x, this._mouse.y, 1).unproject(this.object).sub(this.object.position).normalize();
   }
   _clampDistance(t) {
     return Math.max(this.minDistance, Math.min(this.maxDistance, t));
@@ -254,8 +254,8 @@ class Z extends N {
   _handleTouchMoveDolly(t) {
     const e = this._getSecondPointerPosition(t), s = t.pageX - e.x, i = t.pageY - e.y, a = Math.sqrt(s * s + i * i);
     this._dollyEnd.set(0, a), this._dollyDelta.set(0, Math.pow(this._dollyEnd.y / this._dollyStart.y, this.zoomSpeed)), this._dollyOut(this._dollyDelta.y), this._dollyStart.copy(this._dollyEnd);
-    const h = (t.pageX + e.x) * 0.5, r = (t.pageY + e.y) * 0.5;
-    this._updateZoomParameters(h, r);
+    const n = (t.pageX + e.x) * 0.5, h = (t.pageY + e.y) * 0.5;
+    this._updateZoomParameters(n, h);
   }
   _handleTouchMoveDollyPan(t) {
     this.enableZoom && this._handleTouchMoveDolly(t), this.enablePan && this._handleTouchMovePan(t);
@@ -315,7 +315,7 @@ function K(o) {
 function H(o) {
   switch (this._removePointer(o), this._pointers.length) {
     case 0:
-      this.domElement.releasePointerCapture(o.pointerId), this.domElement.removeEventListener("pointermove", this._onPointerMove), this.domElement.removeEventListener("pointerup", this._onPointerUp), this.dispatchEvent(k), this.state = n.NONE;
+      this.domElement.releasePointerCapture(o.pointerId), this.domElement.removeEventListener("pointermove", this._onPointerMove), this.domElement.removeEventListener("pointerup", this._onPointerUp), this.dispatchEvent(k), this.state = r.NONE;
       break;
     case 1:
       const t = this._pointers[0], e = this._pointerPositions[t];
@@ -339,51 +339,51 @@ function X(o) {
       t = -1;
   }
   switch (t) {
-    case M.DOLLY:
+    case P.DOLLY:
       if (this.enableZoom === !1) return;
-      this._handleMouseDownDolly(o), this.state = n.DOLLY;
+      this._handleMouseDownDolly(o), this.state = r.DOLLY;
       break;
-    case M.ROTATE:
+    case P.ROTATE:
       if (o.ctrlKey || o.metaKey || o.shiftKey) {
         if (this.enablePan === !1) return;
-        this._handleMouseDownPan(o), this.state = n.PAN;
+        this._handleMouseDownPan(o), this.state = r.PAN;
       } else {
         if (this.enableRotate === !1) return;
-        this._handleMouseDownRotate(o), this.state = n.ROTATE;
+        this._handleMouseDownRotate(o), this.state = r.ROTATE;
       }
       break;
-    case M.PAN:
+    case P.PAN:
       if (o.ctrlKey || o.metaKey || o.shiftKey) {
         if (this.enableRotate === !1) return;
-        this._handleMouseDownRotate(o), this.state = n.ROTATE;
+        this._handleMouseDownRotate(o), this.state = r.ROTATE;
       } else {
         if (this.enablePan === !1) return;
-        this._handleMouseDownPan(o), this.state = n.PAN;
+        this._handleMouseDownPan(o), this.state = r.PAN;
       }
       break;
     default:
-      this.state = n.NONE;
+      this.state = r.NONE;
   }
-  this.state !== n.NONE && this.dispatchEvent(O);
+  this.state !== r.NONE && this.dispatchEvent(O);
 }
 function F(o) {
   switch (this.state) {
-    case n.ROTATE:
+    case r.ROTATE:
       if (this.enableRotate === !1) return;
       this._handleMouseMoveRotate(o);
       break;
-    case n.DOLLY:
+    case r.DOLLY:
       if (this.enableZoom === !1) return;
       this._handleMouseMoveDolly(o);
       break;
-    case n.PAN:
+    case r.PAN:
       if (this.enablePan === !1) return;
       this._handleMouseMovePan(o);
       break;
   }
 }
 function W(o) {
-  this.enabled === !1 || this.enableZoom === !1 || this.state !== n.NONE || (o.preventDefault(), this.dispatchEvent(O), this._handleMouseWheel(this._customWheelEvent(o)), this.dispatchEvent(k));
+  this.enabled === !1 || this.enableZoom === !1 || this.state !== r.NONE || (o.preventDefault(), this.dispatchEvent(O), this._handleMouseWheel(this._customWheelEvent(o)), this.dispatchEvent(k));
 }
 function q(o) {
   this.enabled !== !1 && this._handleKeyDown(o);
@@ -392,57 +392,57 @@ function Q(o) {
   switch (this._trackPointer(o), this._pointers.length) {
     case 1:
       switch (this.touches.ONE) {
-        case E.ROTATE:
+        case M.ROTATE:
           if (this.enableRotate === !1) return;
-          this._handleTouchStartRotate(o), this.state = n.TOUCH_ROTATE;
+          this._handleTouchStartRotate(o), this.state = r.TOUCH_ROTATE;
           break;
-        case E.PAN:
+        case M.PAN:
           if (this.enablePan === !1) return;
-          this._handleTouchStartPan(o), this.state = n.TOUCH_PAN;
+          this._handleTouchStartPan(o), this.state = r.TOUCH_PAN;
           break;
         default:
-          this.state = n.NONE;
+          this.state = r.NONE;
       }
       break;
     case 2:
       switch (this.touches.TWO) {
-        case E.DOLLY_PAN:
+        case M.DOLLY_PAN:
           if (this.enableZoom === !1 && this.enablePan === !1) return;
-          this._handleTouchStartDollyPan(o), this.state = n.TOUCH_DOLLY_PAN;
+          this._handleTouchStartDollyPan(o), this.state = r.TOUCH_DOLLY_PAN;
           break;
-        case E.DOLLY_ROTATE:
+        case M.DOLLY_ROTATE:
           if (this.enableZoom === !1 && this.enableRotate === !1) return;
-          this._handleTouchStartDollyRotate(o), this.state = n.TOUCH_DOLLY_ROTATE;
+          this._handleTouchStartDollyRotate(o), this.state = r.TOUCH_DOLLY_ROTATE;
           break;
         default:
-          this.state = n.NONE;
+          this.state = r.NONE;
       }
       break;
     default:
-      this.state = n.NONE;
+      this.state = r.NONE;
   }
-  this.state !== n.NONE && this.dispatchEvent(O);
+  this.state !== r.NONE && this.dispatchEvent(O);
 }
 function G(o) {
   switch (this._trackPointer(o), this.state) {
-    case n.TOUCH_ROTATE:
+    case r.TOUCH_ROTATE:
       if (this.enableRotate === !1) return;
       this._handleTouchMoveRotate(o), this.update();
       break;
-    case n.TOUCH_PAN:
+    case r.TOUCH_PAN:
       if (this.enablePan === !1) return;
       this._handleTouchMovePan(o), this.update();
       break;
-    case n.TOUCH_DOLLY_PAN:
+    case r.TOUCH_DOLLY_PAN:
       if (this.enableZoom === !1 && this.enablePan === !1) return;
       this._handleTouchMoveDollyPan(o), this.update();
       break;
-    case n.TOUCH_DOLLY_ROTATE:
+    case r.TOUCH_DOLLY_ROTATE:
       if (this.enableZoom === !1 && this.enableRotate === !1) return;
       this._handleTouchMoveDollyRotate(o), this.update();
       break;
     default:
-      this.state = n.NONE;
+      this.state = r.NONE;
   }
 }
 function V(o) {
@@ -454,7 +454,7 @@ function B(o) {
 function $(o) {
   o.key === "Control" && (this._controlActive = !1, this.domElement.getRootNode().removeEventListener("keyup", this._interceptControlUp, { passive: !0, capture: !0 }));
 }
-class w {
+class T {
   /**
    * Constructors new ThreeQuery system
    * 
@@ -494,7 +494,7 @@ class w {
   scan(t) {
     t.traverse((e) => {
       if (!e.userData.name) return;
-      const { id: s, classes: i } = w.parseName(e.userData.name);
+      const { id: s, classes: i } = T.parseName(e.userData.name);
       s && (this.idMap.has(s) || this.idMap.set(s, []), this.idMap.get(s).push(e));
       for (let a of i)
         this.classMap.has(a) || this.classMap.set(a, []), this.classMap.get(a).push(e);
@@ -517,24 +517,38 @@ class w {
   /**
    * The main money - a method to query for objects in the scene
    * 
-   * @param {String} selector - CSS-like selector, e.g. #id .class
+   * @param {String|Object3D|Array<Object3D>} selector - CSS-like selector, e.g. #id .class, or Object/Objects to wrap in ThreeQueryResult
    * @param {Object} context - OPTIONAL, the context to search in, default is the scene
    * 
    * @returns {ThreeQueryResult} - a ThreeQueryResult object with the results
    */
   query(t, e = this.scene) {
-    const s = t.trim().split(/\s+/), i = (a, h) => {
-      if (h >= s.length)
+    if (t === "*") {
+      const a = [];
+      return e.traverse((n) => a.push(n)), new b(a, this);
+    }
+    if (t instanceof f.Object3D)
+      return new b([t], this);
+    if (Array.isArray(t) && t.every((a) => a instanceof f.Object3D))
+      return new b(t, this);
+    if (typeof t == "string" && t.includes(",")) {
+      const a = t.split(",").map((h) => h.trim()), n = /* @__PURE__ */ new Set();
+      return a.forEach((h) => {
+        this.query(h, e).objects.forEach((l) => n.add(l));
+      }), new b([...n], this);
+    }
+    const s = t.trim().split(/\s+/), i = (a, n) => {
+      if (n >= s.length)
         return a;
-      const r = s[h];
-      let c = /* @__PURE__ */ new Set();
+      const h = s[n];
+      let l = /* @__PURE__ */ new Set();
       return a.forEach((d) => {
-        d.traverse((b) => {
-          w.matches(b, r) && c.add(b);
+        d.traverse((g) => {
+          T.matches(g, h) && l.add(g);
         });
-      }), i(c, h + 1);
+      }), i(l, n + 1);
     };
-    return new D([...i(/* @__PURE__ */ new Set([e]), 0)], this);
+    return new b([...i(/* @__PURE__ */ new Set([e]), 0)], this);
   }
   /**
    * Method to check of a ThreeJS object matches a CSS-like selector
@@ -546,11 +560,11 @@ class w {
   static matches(t, e) {
     if (!t._threeQueryMeta)
       return !1;
-    const { id: s, classes: i } = t._threeQueryMeta, a = e.match(/^#(\w+)/), h = [...e.matchAll(/\.(\w+)/g)].map((r) => r[1]);
+    const { id: s, classes: i } = t._threeQueryMeta, a = e.match(/^#(\w+)/), n = [...e.matchAll(/\.(\w+)/g)].map((h) => h[1]);
     if (a && s !== a[1])
       return !1;
-    for (let r of h)
-      if (!i.has(r))
+    for (let h of n)
+      if (!i.has(h))
         return !1;
     return !0;
   }
@@ -564,7 +578,7 @@ class w {
     return this.query(t);
   }
 }
-class D {
+class b {
   /**
    * Constructs new ThreeQueryResult object
    * 
@@ -594,7 +608,7 @@ class D {
     return this.objects.forEach((s) => {
       const i = this.root.query(t, s);
       e.push(...i.objects);
-    }), new D(e, this.root);
+    }), new b(e, this.root);
   }
   /**
    * Method to apply scale to results or return the current scale
@@ -643,9 +657,9 @@ class D {
     var s;
     return t ? (this.each((i) => {
       const a = Array.isArray(i.material) ? i.material : [i.material];
-      (e ? a : [a[0]]).forEach((h) => {
-        Object.entries(t).forEach(([r, c]) => {
-          r in h ? h[r] = c : console.warn(`Property ${r} not in material`);
+      (e ? a : [a[0]]).forEach((n) => {
+        Object.entries(t).forEach(([h, l]) => {
+          h in n ? n[h] = l : console.warn(`Property ${h} not in material`);
         });
       });
     }), this) : (s = this.objects[0]) == null ? void 0 : s.material;
@@ -677,9 +691,9 @@ class D {
   id(t) {
     var e, s;
     return t ? (this.each((i) => {
-      var h;
+      var n;
       const a = i._threeQueryMeta.id;
-      a && ((h = this.root.idMap.get(a)) == null || h.splice(this.root.idMap.get(a).indexOf(i), 1)), i._threeQueryMeta.id = t, i.userData.name = `#${t}`, this.root.idMap.has(t) || this.root.idMap.set(t, []), this.root.idMap.get(t).push(i);
+      a && ((n = this.root.idMap.get(a)) == null || n.splice(this.root.idMap.get(a).indexOf(i), 1)), i._threeQueryMeta.id = t, i.userData.name = `#${t}`, this.root.idMap.has(t) || this.root.idMap.set(t, []), this.root.idMap.get(t).push(i);
     }), this) : (s = (e = this.objects[0]) == null ? void 0 : e._threeQueryMeta) == null ? void 0 : s.id;
   }
   /**
@@ -734,7 +748,7 @@ class D {
     var s;
     if (!t)
       return (s = this.objects[0]) == null ? void 0 : s.parent;
-    const e = t instanceof D ? t.objects[0] : t;
+    const e = t instanceof b ? t.objects[0] : t;
     return this.each((i) => e.add(i)), this;
   }
   /**
@@ -744,7 +758,7 @@ class D {
    */
   clone() {
     const t = this.objects.map((e) => e.clone(!0));
-    return new D(t, this.root);
+    return new b(t, this.root);
   }
   /**
    * Getter for the objects in this result
@@ -755,54 +769,54 @@ class D {
     return this.objects.length === 1 ? this.objects[0] : this.objects;
   }
 }
-w.createScene = function(o, {
+T.createScene = function(o, {
   autoSize: t = !0,
   autoRender: e = !0,
   onRender: s = null,
   addCube: i = !1,
   addLights: a = !1,
-  addControls: h = !1
+  addControls: n = !1
 } = {}) {
-  const r = new y.Scene(), c = new y.PerspectiveCamera(75, o.clientWidth / o.clientHeight, 0.1, 1e3);
-  c.position.set(0, 0, 3);
-  const d = new y.WebGLRenderer({ antialias: !0 });
+  const h = new f.Scene(), l = new f.PerspectiveCamera(75, o.clientWidth / o.clientHeight, 0.1, 1e3);
+  l.position.set(0, 0, 3);
+  const d = new f.WebGLRenderer({ antialias: !0 });
   d.setSize(o.clientWidth, o.clientHeight), o.appendChild(d.domElement);
-  let b = null;
+  let g = null;
   if (t) {
     const _ = () => {
-      const f = o.clientWidth, g = o.clientHeight;
-      c.aspect = f / g, c.updateProjectionMatrix(), d.setSize(f, g), e && d.render(r, c);
+      const y = o.clientWidth, E = o.clientHeight;
+      l.aspect = y / E, l.updateProjectionMatrix(), d.setSize(y, E), e && d.render(h, l);
     };
-    b = new ResizeObserver(_), b.observe(o);
+    g = new ResizeObserver(_), g.observe(o);
   }
-  let P = null;
-  h && (P = new Z(c, d.domElement), P.enableDamping = !0);
+  let D = null;
+  n && (D = new Z(l, d.domElement), D.enableDamping = !0);
   let j = null;
   if (a) {
-    const _ = new y.AmbientLight(16777215, 0.6), f = new y.DirectionalLight(16777215, 0.8);
-    f.position.set(5, 5, 5), r.add(_, f), j = { ambientLight: _, directionalLight: f };
+    const _ = new f.AmbientLight(16777215, 0.6), y = new f.DirectionalLight(16777215, 0.8);
+    y.position.set(5, 5, 5), h.add(_, y), j = { ambientLight: _, directionalLight: y };
   }
   let R = null;
   if (i) {
-    const _ = new y.BoxGeometry(), f = new y.MeshStandardMaterial({ color: "red" }), g = new y.Mesh(_, f);
-    g.userData.name = "#defaultCube .red .box", r.add(g), R = { geometry: _, material: f, object: g };
+    const _ = new f.BoxGeometry(), y = new f.MeshStandardMaterial({ color: "red" }), E = new f.Mesh(_, y);
+    E.userData.name = "#defaultCube .red .box", h.add(E), R = { geometry: _, material: y, object: E };
   }
   if (e) {
     let _ = function() {
-      requestAnimationFrame(_), s && s(), P && P.update(), d.render(r, c);
+      requestAnimationFrame(_), s && s(), D && D.update(), d.render(h, l);
     };
     _();
   }
   return {
-    scene: r,
+    scene: h,
     renderer: d,
-    camera: c,
-    controls: P,
+    camera: l,
+    controls: D,
     cube: R,
     lights: j,
-    resizeObserver: b
+    resizeObserver: g
   };
 };
 export {
-  w as default
+  T as default
 };

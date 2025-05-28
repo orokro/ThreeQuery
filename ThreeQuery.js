@@ -135,45 +135,72 @@ class ThreeQuery {
 	/**
 	 * The main money - a method to query for objects in the scene
 	 * 
-	 * @param {String} selector - CSS-like selector, e.g. #id .class
+	 * @param {String|Object3D|Array<Object3D>} selector - CSS-like selector, e.g. #id .class, or Object/Objects to wrap in ThreeQueryResult
 	 * @param {Object} context - OPTIONAL, the context to search in, default is the scene
 	 * 
 	 * @returns {ThreeQueryResult} - a ThreeQueryResult object with the results
 	 */
 	query(selector, context = this.scene) {
 
+		// hard-coded case for selecting everything - just return everything in our scene
+		if (selector === '*') {
+			const all = [];
+			context.traverse(obj => all.push(obj));
+			return new ThreeQueryResult(all, this);
+		}
+	
+		// if we were given a reference to an Object3D or an array of them, just wrap it in a ThreeQueryResult
+		if (selector instanceof THREE.Object3D) {
+			return new ThreeQueryResult([selector], this);
+		}
+		if (Array.isArray(selector) && selector.every(obj => obj instanceof THREE.Object3D)) {
+			return new ThreeQueryResult(selector, this);
+		}
+	
+		// if we found a comma in the query string, treat it as a comma-separated list of selectors
+		if (typeof selector === 'string' && selector.includes(',')) {
+
+			// get all the parts of the selector, trim them, and merge results from each part
+			const parts = selector.split(',').map(s => s.trim());
+			const merged = new Set();
+
+			// recursively query each part and merge results into a single set
+			parts.forEach(part => {
+				this.query(part, context).objects.forEach(obj => merged.add(obj));
+			});
+			return new ThreeQueryResult([...merged], this);
+		}
+	
 		// build a set of results as we search
 		let results = new Set();
-
-		// parse the selector string
 		const selectors = selector.trim().split(/\s+/);
-
+	
 		// perform search based on the selectors parts in order
 		const search = (objs, idx) => {
 
 			// gtfo if we reached the end of selectors
 			if (idx >= selectors.length)
 				return objs;
-
+	
 			// get selector & search for it in the current set of objects
 			const sel = selectors[idx];
 			let next = new Set();
-
+	
 			// search for the selector in the current set of objects
 			objs.forEach(obj => {
 				obj.traverse(child => {
-					if (ThreeQuery.matches(child, sel)) {
+					if (ThreeQuery.matches(child, sel))
 						next.add(child);
-					}
 				});
 			});
-
+	
 			return search(next, idx + 1);
 		};
-
+	
 		// kick off the recursive search & pack results into a new ThreeQueryResult object
 		return new ThreeQueryResult([...search(new Set([context]), 0)], this);
 	}
+	
 
 
 	/**
