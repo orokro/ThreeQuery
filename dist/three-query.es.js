@@ -561,7 +561,7 @@ class T {
     if (!t._threeQueryMeta)
       return !1;
     const { id: s, classes: i } = t._threeQueryMeta, a = e.match(/^#(\w+)/), n = [...e.matchAll(/\.(\w+)/g)].map((h) => h[1]);
-    if (a && s !== a[1])
+    if (!a && n.length === 0 || a && s !== a[1])
       return !1;
     for (let h of n)
       if (!i.has(h))

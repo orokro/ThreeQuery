@@ -202,7 +202,6 @@ class ThreeQuery {
 	}
 	
 
-
 	/**
 	 * Method to check of a ThreeJS object matches a CSS-like selector
 	 * 
@@ -223,9 +222,14 @@ class ThreeQuery {
 		const idMatch = selector.match(/^#(\w+)/);
 		const classMatches = [...selector.matchAll(/\.(\w+)/g)].map(m => m[1]);
 
+		// If the selector isn't an ID or class, reject it outright
+		if (!idMatch && classMatches.length === 0)
+			return false;
+
 		// if neither ID nor class matches, we don't match
 		if (idMatch && id !== idMatch[1])
 			return false;
+	
 		for (let cls of classMatches)
 			if (!classes.has(cls))
 				return false;
