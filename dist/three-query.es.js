@@ -764,7 +764,7 @@ w.createScene = function(o, {
   addControls: h = !1
 } = {}) {
   const r = new y.Scene(), c = new y.PerspectiveCamera(75, o.clientWidth / o.clientHeight, 0.1, 1e3);
-  c.position.set(2, 2, 3);
+  c.position.set(0, 0, 3);
   const d = new y.WebGLRenderer({ antialias: !0 });
   d.setSize(o.clientWidth, o.clientHeight), o.appendChild(d.domElement);
   let b = null;
