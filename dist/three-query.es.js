@@ -537,7 +537,8 @@ class T {
         this.query(h, e).objects.forEach((l) => n.add(l));
       }), new b([...n], this);
     }
-    const s = t.trim().split(/\s+/), i = (a, n) => {
+    let s = /\s/.test(t) ? t.trim().split(/\s+/) : [t.trim()];
+    const i = (a, n) => {
       if (n >= s.length)
         return a;
       const h = s[n];
