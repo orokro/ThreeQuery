@@ -544,8 +544,10 @@ class T {
       const h = s[n];
       let l = /* @__PURE__ */ new Set();
       return a.forEach((d) => {
-        d.traverse((g) => {
-          T.matches(g, h) && l.add(g);
+        d.children.forEach((D) => {
+          D.traverse((g) => {
+            T.matches(g, h) && l.add(g);
+          });
         });
       }), i(l, n + 1);
     };
@@ -782,16 +784,16 @@ T.createScene = function(o, {
   l.position.set(0, 0, 3);
   const d = new f.WebGLRenderer({ antialias: !0 });
   d.setSize(o.clientWidth, o.clientHeight), o.appendChild(d.domElement);
-  let g = null;
+  let D = null;
   if (t) {
     const _ = () => {
       const y = o.clientWidth, E = o.clientHeight;
       l.aspect = y / E, l.updateProjectionMatrix(), d.setSize(y, E), e && d.render(h, l);
     };
-    g = new ResizeObserver(_), g.observe(o);
+    D = new ResizeObserver(_), D.observe(o);
   }
-  let D = null;
-  n && (D = new Z(l, d.domElement), D.enableDamping = !0);
+  let g = null;
+  n && (g = new Z(l, d.domElement), g.enableDamping = !0);
   let j = null;
   if (a) {
     const _ = new f.AmbientLight(16777215, 0.6), y = new f.DirectionalLight(16777215, 0.8);
@@ -804,7 +806,7 @@ T.createScene = function(o, {
   }
   if (e) {
     let _ = function() {
-      requestAnimationFrame(_), s && s(), D && D.update(), d.render(h, l);
+      requestAnimationFrame(_), s && s(), g && g.update(), d.render(h, l);
     };
     _();
   }
@@ -812,10 +814,10 @@ T.createScene = function(o, {
     scene: h,
     renderer: d,
     camera: l,
-    controls: D,
+    controls: g,
     cube: R,
     lights: j,
-    resizeObserver: g
+    resizeObserver: D
   };
 };
 export {

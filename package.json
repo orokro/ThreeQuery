@@ -1,6 +1,6 @@
 {
 	"name": "three-query",
-	"version": "0.9.8",
+	"version": "0.9.9",
 	"description": "ID & Classname based querying for GLBs in ThreeJS from Blender",
 	"main": "dist/three-query.cjs.js",
 	"module": "dist/three-query.es.js",

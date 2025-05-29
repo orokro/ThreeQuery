@@ -183,9 +183,11 @@ class ThreeQuery {
 
 			// search for the selector in the current set of objects
 			objs.forEach(obj => {
-				obj.traverse(child => {
-					if (ThreeQuery.matches(child, sel))
-						next.add(child);
+				obj.children.forEach(child => {
+					child.traverse(descendant => {
+						if (ThreeQuery.matches(descendant, sel))
+							next.add(descendant);
+					});
 				});
 			});
 
