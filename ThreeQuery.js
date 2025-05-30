@@ -41,6 +41,7 @@ class ThreeQuery {
 		this._eventRegistry = new Map();
 		this._mouse = { x: 0, y: 0 };
 		this._renderer = null;
+		this.camera = null;
 		this._raycastCache = { frame: -1, x: null, y: null, results: [] };
 		this._lastIntersections = new Set();
 		this._frameCount = 0;
@@ -336,7 +337,15 @@ class ThreeQuery {
 			this._raycastCache.y = y;
 		}
 
-		const hits = this._raycastCache.results;
+		// Dedupe hits by object — keep first hit per object
+		const seen = new Set();
+		const hits = [];
+		for (const hit of this._raycastCache.results) {
+			if (!seen.has(hit.object)) {
+				seen.add(hit.object);
+				hits.push(hit);
+			}
+		}
 
 		// Dispatch events to objects registered for this type
 		for (const hit of hits) {
