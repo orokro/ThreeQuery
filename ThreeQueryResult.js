@@ -322,12 +322,14 @@ class ThreeQueryResult {
 	 * @returns {ThreeQueryResult} this
 	 */
 	on(eventType, callback) {
-		const registry = this.root._eventRegistry;
+
+		const registry = this.root.eventRegistry;
 
 		if (!registry.has(eventType))
 			registry.set(eventType, new Map());
 
 		this.objects.forEach(obj => {
+			
 			if (!registry.get(eventType).has(obj))
 				registry.get(eventType).set(obj, new Set());
 
@@ -346,17 +348,22 @@ class ThreeQueryResult {
 	 * @returns {ThreeQueryResult} this
 	 */
 	off(eventType, callback) {
-		const registry = this.root._eventRegistry;
-		if (!registry.has(eventType)) return this;
+
+		const registry = this.root.eventRegistry;
+		if (!registry.has(eventType))
+			return this;
 
 		this.objects.forEach(obj => {
+
 			const objMap = registry.get(eventType);
-			if (!objMap.has(obj)) return;
+			if (!objMap.has(obj))
+				return;
 
 			if (callback) {
 				objMap.get(obj).delete(callback);
 				if (objMap.get(obj).size === 0)
 					objMap.delete(obj);
+
 			} else {
 				objMap.delete(obj);
 			}

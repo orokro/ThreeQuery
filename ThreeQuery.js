@@ -38,13 +38,19 @@ class ThreeQuery {
 
 		// things for our event handling system
 		// Internal event registry: eventType → object → callback[]
-		this._eventRegistry = new Map();
-		this._mouse = { x: 0, y: 0 };
-		this._renderer = null;
+		this.eventRegistry = new Map();
+
+		// save the mouse position for raycasting
+		this.mouse = { x: 0, y: 0 };
+
+		// we'll store the last raycast results here to avoid recalculating them
+		this.raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this.lastIntersections = new Set();
+		this.frameCount = 0;
+
+		// we'll need these for raycasting, but are optional if user doesn't want events
+		this.renderer = null;
 		this.camera = null;
-		this._raycastCache = { frame: -1, x: null, y: null, results: [] };
-		this._lastIntersections = new Set();
-		this._frameCount = 0;
 
 		// scan our initial scene for IDs and class names
 		this.scan(scene);
@@ -65,24 +71,30 @@ class ThreeQuery {
 	 */
 	setRenderer(renderer) {
 
-		this._renderer = renderer;
+		// save the renderer and its canvas
+		this.renderer = renderer;
 		const canvas = renderer.domElement;
 
 		// Bind and store handlers
 		this._boundMouseMove = (e) => {
+
+			// calculate & save the mouse position relative to the canvas
 			const rect = canvas.getBoundingClientRect();
-			this._mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-			this._mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+			this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+			this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
+			// true if we have any mouse events registered that need raycasting
 			const needsRaycast =
-				this._eventRegistry.has('mousemove') ||
-				this._eventRegistry.has('mouseenter') ||
-				this._eventRegistry.has('mouseleave');
+				this.eventRegistry.has('mousemove') ||
+				this.eventRegistry.has('mouseenter') ||
+				this.eventRegistry.has('mouseleave');
 
-			if (needsRaycast) this._handleMouseEvent('mousemove', e);
+			if (needsRaycast)
+				this._handleMouseEvent('mousemove', e);
 		};
-		canvas.addEventListener('mousemove', this._boundMouseMove);
 
+		// bind all the events to the canvas we'll need for our event system
+		canvas.addEventListener('mousemove', this._boundMouseMove);
 		this._boundEvents = {};
 		['click', 'dblclick', 'mousedown', 'mouseup', 'wheel'].forEach(eventType => {
 			this._boundEvents[eventType] = (e) => this._handleMouseEvent(eventType, e);
@@ -307,54 +319,76 @@ class ThreeQuery {
 	}
 
 
+	/**
+	 * Handle events for mouse interactions, if we have a renderer and camera set.
+	 * 
+	 * @param {String} eventType - the type of event to register for (e.g., 'click', 'mousemove', etc.)
+	 * @param {MouseEvent} domEvent - the native DOM event to handle
+	 */
 	_handleMouseEvent(eventType, domEvent) {
 
-		if (!this._renderer)
-			throw new Error("Renderer not set. Use setRenderer(renderer) before using .on/.off.");
+		const canvas = this.renderer.domElement;
 
-		if (!this.camera)
-			throw new Error("Camera not set. Use setCamera(camera) before using events.");
-	
-		const canvas = this._renderer.domElement;
-		const registry = this._eventRegistry.get(eventType);
-		if (!registry || registry.size === 0) return;
+		// check if we have any listeners for this type of event
+		// if we don't have any, we can skip raycasting
+		const registry = this.eventRegistry.get(eventType);
+		if ((!registry || registry.size === 0) && eventType !== 'mousemove')
+			return;
 
-		const frame = ++this._frameCount;
-		const { x, y } = this._mouse;
+		// used for preventing duplicate raycasts in the same frame
+		const frame = ++this.frameCount;
+
+		// get the mouse position over the canvas where it was last
+		const { x, y } = this.mouse;
 
 		// Use cached raycast if valid
 		if (
-			this._raycastCache.frame !== frame ||
-			this._raycastCache.x !== x ||
-			this._raycastCache.y !== y
+			this.raycastCache.frame !== frame ||
+			this.raycastCache.x !== x ||
+			this.raycastCache.y !== y
 		) {
 			const raycaster = new THREE.Raycaster();
-			raycaster.setFromCamera({ x, y }, this.camera);	// Assumes camera is available
+			raycaster.setFromCamera({ x, y }, this.camera);
 
-			this._raycastCache.results = raycaster.intersectObjects(this.scene.children, true);
-			this._raycastCache.frame = frame;
-			this._raycastCache.x = x;
-			this._raycastCache.y = y;
+			// save the raycast results in our cache
+			this.raycastCache.results = raycaster.intersectObjects(this.scene.children, true);
+			this.raycastCache.frame = frame;
+			this.raycastCache.x = x;
+			this.raycastCache.y = y;
 		}
 
 		// Dedupe hits by object — keep first hit per object
 		const seen = new Set();
 		const hits = [];
-		for (const hit of this._raycastCache.results) {
+		for (const hit of this.raycastCache.results) {
 			if (!seen.has(hit.object)) {
 				seen.add(hit.object);
 				hits.push(hit);
 			}
-		}
+		}// next hit
+
+		// Handle mouseenter/mouseleave (only on mousemove)
+		if (eventType === 'mousemove')
+			this._handleEnterLeave(hits, domEvent);
+
+		// if we didn't get a register, we can exit now
+		if (!registry || registry.size === 0)
+			return;
 
 		// Dispatch events to objects registered for this type
 		for (const hit of hits) {
+
+			// first we check if the object is registered for this event type
 			const obj = hit.object;
-			if (!registry.has(obj)) continue;
+			if (!registry.has(obj))
+				continue;
 
+			// get the list of callbacks for this object and event type or gtfo if none
 			const callbacks = registry.get(obj);
-			if (!callbacks) continue;
+			if (!callbacks)
+				continue;
 
+			// Create a new ThreeQueryEvent for this hit
 			const evt = new ThreeQueryEvent({
 				object: obj,
 				root: this,
@@ -364,103 +398,126 @@ class ThreeQuery {
 				y
 			});
 
+			// Dispatch the event to all callbacks registered for this object and event type
 			for (const cb of callbacks)
 				cb(evt);
-		}
+		}// next hit
 
-		// Handle mouseenter/mouseleave (only on mousemove)
-		if (eventType === 'mousemove')
-			this._handleEnterLeave(hits, domEvent);
 	}
 
 
+	/**
+	 * Handles mouse enter/leave events based on current raycast hits.
+	 * 
+	 * @param {Array} currentHits - Array of current raycast hits.
+	 * @param {MouseEvent} domEvent - The original DOM event that triggered this.
+	 */
 	_handleEnterLeave(currentHits, domEvent) {
 
+		// build our sets to compare
 		const currentSet = new Set(currentHits.map(hit => hit.object));
 		const entered = new Set();
 		const left = new Set();
 
 		// Detect entered
-		for (const obj of currentSet) {
-			if (!this._lastIntersections.has(obj))
+		for (const obj of currentSet)
+			if (!this.lastIntersections.has(obj))
 				entered.add(obj);
-		}
+		
 
 		// Detect left
-		for (const obj of this._lastIntersections) {
+		for (const obj of this.lastIntersections)
 			if (!currentSet.has(obj))
 				left.add(obj);
-		}
 
-		// Update last state
-		this._lastIntersections = currentSet;
+		// Update last state to compare to next time
+		this.lastIntersections = currentSet;
 
 		// Dispatch enter
-		const enterRegistry = this._eventRegistry.get('mouseenter');
+		const enterRegistry = this.eventRegistry.get('mouseenter');
 		if (enterRegistry) {
-			for (const obj of entered) {
-				const callbacks = enterRegistry.get(obj);
-				if (!callbacks) continue;
 
+			// For each object that was entered, dispatch the event
+			for (const obj of entered) {
+
+				// Check if we have callbacks registered for this object
+				const callbacks = enterRegistry.get(obj);
+				if (!callbacks)
+					continue;
+
+				// Find the hit for this object in the current hits & create the event
 				const hit = currentHits.find(h => h.object === obj);
 				const evt = new ThreeQueryEvent({
 					object: obj,
 					root: this,
 					originalEvent: domEvent,
 					raycast: hit,
-					x: this._mouse.x,
-					y: this._mouse.y
+					x: this.mouse.x,
+					y: this.mouse.y
 				});
 
+				// Dispatch the event to all callbacks registered for this object
 				for (const cb of callbacks)
 					cb(evt);
-			}
+
+			}// next obj
 		}
 
 		// Dispatch leave
-		const leaveRegistry = this._eventRegistry.get('mouseleave');
+		const leaveRegistry = this.eventRegistry.get('mouseleave');
 		if (leaveRegistry) {
-			for (const obj of left) {
-				const callbacks = leaveRegistry.get(obj);
-				if (!callbacks) continue;
 
+			// For each object that was left, dispatch the event
+			for (const obj of left) {
+
+				// Check if we have callbacks registered for this object
+				const callbacks = leaveRegistry.get(obj);
+				if (!callbacks)
+					continue;
+
+				// Create the event for this object
 				const evt = new ThreeQueryEvent({
 					object: obj,
 					root: this,
 					originalEvent: domEvent,
 					raycast: null,
-					x: this._mouse.x,
-					y: this._mouse.y
+					x: this.mouse.x,
+					y: this.mouse.y
 				});
 
+				// Dispatch the event to all callbacks registered for this object
 				for (const cb of callbacks)
 					cb(evt);
-			}
+
+			}// next obj
 		}
 	}
 
-
+	/**
+	 * Cleans up the ThreeQuery instance, removing all event listeners and clearing internal state.
+	 */
 	destroy() {
-		if (!this._renderer) return;
 
-		const canvas = this._renderer.domElement;
+		// If we don't have a renderer, there's nothing to clean up
+		if (!this.renderer)
+			return;
 
-		// Remove all listeners
+		// Remove all listeners from the canvas
+		const canvas = this.renderer.domElement;
 		canvas.removeEventListener('mousemove', this._boundMouseMove);
 		['click', 'dblclick', 'mousedown', 'mouseup', 'wheel'].forEach(eventType => {
 			canvas.removeEventListener(eventType, this._boundEvents?.[eventType]);
 		});
 
 		// Clear internal references
-		this._eventRegistry.clear();
-		this._lastIntersections.clear();
-		this._raycastCache = { frame: -1, x: null, y: null, results: [] };
-		this._mouse = { x: 0, y: 0 };
-		this._renderer = null;
+		this.eventRegistry.clear();
+		this.lastIntersections.clear();
+		this.raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this.mouse = { x: 0, y: 0 };
+		this.renderer = null;
 		this._boundMouseMove = null;
 		this._boundEvents = null;
 	}
-
 
 }
 
