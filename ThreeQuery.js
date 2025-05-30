@@ -8,7 +8,8 @@
 // imports
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
+import ThreeQueryResult from './ThreeQueryResult.js';
+import ThreeQueryEvent from './ThreeQueryEvent.js';
 
 /**
  * Main class
@@ -19,8 +20,10 @@ class ThreeQuery {
 	 * Constructors new ThreeQuery system
 	 * 
 	 * @param {scene} scene - the ThreeJS scene
+	 * @param {renderer} renderer - the ThreeJS renderer (optional)
+	 * @param {camera} camera - the ThreeJS camera (optional)
 	 */
-	constructor(scene) {
+	constructor(scene, renderer, camera) {
 
 		// save our scene
 		this.scene = scene;
@@ -33,14 +36,70 @@ class ThreeQuery {
 		// threeJS loaders for different types of objects
 		this.loaders = new Map();
 
+		// things for our event handling system
+		// Internal event registry: eventType → object → callback[]
+		this._eventRegistry = new Map();
+		this._mouse = { x: 0, y: 0 };
+		this._renderer = null;
+		this._raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this._lastIntersections = new Set();
+		this._frameCount = 0;
+
 		// scan our initial scene for IDs and class names
 		this.scan(scene);
+
+		// Optional renderer/camera
+		if (renderer) this.setRenderer(renderer);
+		if (camera) this.setCamera(camera);
 
 		// make sure this is bound to our instance
 		this.$ = this.$.bind(this);
 	}
 
-	
+
+	/**
+	 * Sets the renderer of an ThreeJS set up, so we can use it for events
+	 * 
+	 * @param {Renderer} renderer - the ThreeJS renderer to specify canvas to use for events
+	 */
+	setRenderer(renderer) {
+
+		this._renderer = renderer;
+		const canvas = renderer.domElement;
+
+		// Bind and store handlers
+		this._boundMouseMove = (e) => {
+			const rect = canvas.getBoundingClientRect();
+			this._mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+			this._mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+			const needsRaycast =
+				this._eventRegistry.has('mousemove') ||
+				this._eventRegistry.has('mouseenter') ||
+				this._eventRegistry.has('mouseleave');
+
+			if (needsRaycast) this._handleMouseEvent('mousemove', e);
+		};
+		canvas.addEventListener('mousemove', this._boundMouseMove);
+
+		this._boundEvents = {};
+		['click', 'dblclick', 'mousedown', 'mouseup', 'wheel'].forEach(eventType => {
+			this._boundEvents[eventType] = (e) => this._handleMouseEvent(eventType, e);
+			canvas.addEventListener(eventType, this._boundEvents[eventType]);
+		});
+	}
+
+
+	/**
+	 * Sets the camera used for event raycasting.
+	 * 
+	 * @param {THREE.Camera} camera 
+	 */
+	setCamera(camera) {
+		this.camera = camera;
+	}
+
+
 	/**
 	 * Add a loader we can use for format types
 	 * 
@@ -100,10 +159,10 @@ class ThreeQuery {
 
 			// update our class map with any class names found
 			for (let cls of classes) {
-			
+
 				if (!this.classMap.has(cls)) this.classMap.set(cls, []);
 				this.classMap.get(cls).push(child);
-			
+
 			}// next cls
 
 			// tell the child object about its ID and classes we parsed from the name
@@ -226,11 +285,11 @@ class ThreeQuery {
 		// if neither ID nor class matches, we don't match
 		if (idMatch && id !== idMatch[1])
 			return false;
-	
+
 		for (let cls of classMatches)
 			if (!classes.has(cls))
 				return false;
-		
+
 		// if we ran the gauntlet, we matched
 		return true;
 	}
@@ -245,317 +304,157 @@ class ThreeQuery {
 	$(selector) {
 		return this.query(selector);
 	}
-}
 
 
-/**
- * Results for a ThreeQuery query, with added functionality for manipulating & changing the results
- */
-class ThreeQueryResult {
+	_handleMouseEvent(eventType, domEvent) {
 
-	/**
-	 * Constructs new ThreeQueryResult object
-	 * 
-	 * @param {Array<Object3D>} objects - list of objects found in a query
-	 * @param {Object3D} root - Scene root
-	 */
-	constructor(objects, root) {
-		this.objects = objects;
-		this.root = root;
-	}
+		if (!this._renderer)
+			throw new Error("Renderer not set. Use setRenderer(renderer) before using .on/.off.");
 
-
-	/**
-	 * Iterator helper
-	 * 
-	 * @param {Function} fn - function to call for each object
-	 * @returns {ThreeQueryResult} - this object
-	 */
-	each(fn) {
-		this.objects.forEach(fn);
-		return this;
-	}
-
-
-	/**
-	 * Searches results for a selector
-	 * 
-	 * @param {String} selector - CSS selector to search for
-	 * @returns {ThreeQueryResult} - a ThreeQueryResult object with the results
-	 */
-	find(selector) {
-
-		const found = [];
-		this.objects.forEach(obj => {
-			const res = this.root.query(selector, obj);
-			found.push(...res.objects);
-		});
-
-		// technically a new result, so return that
-		return new ThreeQueryResult(found, this.root);
-	}
-
-
-	/**
-	 * Method to apply scale to results or return the current scale
-	 * 
-	 * @param {Number} x - new x scale
-	 * @param {Number} y - new y scale
-	 * @param {Number} z - new z scale
-	 * @returns {Vector3|ThreeQueryResult} - this object OR the current scale if no params
-	 */
-	scale(x, y, z) {
-
-		// return scale if no params (this acts as a getter)
-		if (x === undefined)
-			return this.objects[0]?.scale;
-
-		this.each(o => o.scale.set(x, y, z));
-		return this;
-	}
-
-
-	/**
-	 * Method to apply position to results or return the current position
-	 * 
-	 * @param {Number} x - new x position
-	 * @param {Number} y - new y position
-	 * @param {Number} z - new z position
-	 * @returns {Vector3|ThreeQueryResult} - this object OR the current position if no params
-	 */
-	pos(x, y, z) {
-
-		// return position if no params (this acts as a getter)
-		if (x === undefined)
-			return this.objects[0]?.position;
-
-		this.each(o => o.position.set(x, y, z));
-		return this;
-	}
-
-
-	/**
-	 * Method to apply rotation to results or return the current rotation
-	 * 
-	 * @param {Number} x - new x rotation OR quaternion
-	 * @param {Number} y - new y rotation
-	 * @param {Number} z - new z rotation
-	 * @returns {quaternion|ThreeQueryResult} - this object OR the current rotation if no params
-	 */
-	rot(x, y, z) {
-
-		// return rotation if no params (this acts as a getter)
-		if (x === undefined)
-			return this.objects[0]?.rotation;
-
-		// apply quaternion if x is an object
-		if (typeof x === 'object')
-			this.each(o => o.quaternion.copy(x));
-
-		// otherwise, set the rotation in Euler angles
-		else
-			this.each(o => o.rotation.set(x, y, z));
-
-		return this;
-	}
-
-
-	/**
-	 * Sets material settings or returns the current material if no params
-	 * 
-	 * @param {Object} settings - settings to apply to the material
-	 * @param {Boolean} applyAll - if true, apply to all materials, otherwise only the first
-	 * @returns {Material|ThreeQueryResult} - this object OR the current material if no params
-	 */
-	material(settings, applyAll = false) {
-
-		// return material if no params (this acts as a getter)
-		if (!settings)
-			return this.objects[0]?.material;
-
-		// apply settings to the material
-		this.each(obj => {
-
-			const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-			(applyAll ? mats : [mats[0]]).forEach(mat => {
-				Object.entries(settings).forEach(([k, v]) => {
-					if (k in mat) mat[k] = v;
-					else console.warn(`Property ${k} not in material`);
-				});
-			});
-		});
-
-		return this;
-	}
-
-
-	/**
-	 * Toggles the visibility of the objects
-	 * 
-	 * @returns {ThreeQueryResult} - this object
-	 */
-	toggle() {
-		this.each(o => o.visible = !o.visible);
-		return this;
-	}
-
-
-	/**
-	 * Explicitly sets the visibility of the objects or returns the current visibility if no params
-	 * 
-	 * @param {Boolean} val - true to show, false to hide
-	 * @returns {Boolean|ThreeQueryResult} - this object OR the current visibility if no params	
-	 */
-	show(val) {
-
-		// return visibility if no params (this acts as a getter)
-		if (val === undefined)
-			return this.objects[0]?.visible;
-
-		// set visibility for all objects
-		this.each(o => o.visible = val);
-		return this;
-	}
-
-
-	/**
-	 * Sets the ID of the objects or returns the current ID if no params
-	 * 
-	 * @param {String} newID - new ID to set
-	 * @returns {String|ThreeQueryResult} - this object OR the current ID if no params	
-	 */
-	id(newID) {
-
-		// return ID if no params (this acts as a getter)
-		if (!newID)
-			return this.objects[0]?._threeQueryMeta?.id;
-
-		// set the ID for all objects
-		this.each(obj => {
-
-			const old = obj._threeQueryMeta.id;
-			if (old)
-				this.root.idMap.get(old)?.splice(this.root.idMap.get(old).indexOf(obj), 1);
-			
-			obj._threeQueryMeta.id = newID;
-			obj.userData.name = `#${newID}`;
-
-			if (!this.root.idMap.has(newID))
-				this.root.idMap.set(newID, []);
-
-			this.root.idMap.get(newID).push(obj);
-		});
-
-		return this;
-	}
-
-
-	/**
-	 * Adds a class name
-	 * 
-	 * @param {String} cls - class name
-	 * @returns {ThreeQueryResult} - this object
-	 */
-	addClass(cls) {
-		this.each(obj => {
-			obj._threeQueryMeta.classes.add(cls);
-			obj.userData.name += ` .${cls}`;
-			if (!this.root.classMap.has(cls)) this.root.classMap.set(cls, []);
-			this.root.classMap.get(cls).push(obj);
-		});
-		return this;
-	}
-
-
-	/**
-	 * Removes class name
-	 * @param {String} cls - class name
-	 * @returns {ThreeQueryResult} - this object
-	 */
-	removeClass(cls) {
-
-		this.each(obj => {
-			obj._threeQueryMeta.classes.delete(cls);
-			obj.userData.name = obj.userData.name.replace(new RegExp(`\\.${cls}`), '');
-			this.root.classMap.get(cls)?.splice(this.root.classMap.get(cls).indexOf(obj), 1);
-		});
-		return this;
-	}
-
-
-	/**
-	 * Toggles a class name
-	 * 
-	 * @param {String} cls - class name
-	 * @returns {ThreeQueryResult} - this object
-	 */
-	toggleClass(cls) {
-
-		this.each(obj => {
-			if (obj._threeQueryMeta.classes.has(cls)) this.removeClass(cls);
-			else this.addClass(cls);
-		});
-		return this;
-	}
-
-
-	/**
-	 * Gets the class names of the first object
-	 * 
-	 * @returns {Array} - array of class names
-	 */
-	class() {
-		return [...this.objects[0]?._threeQueryMeta?.classes || []];
-	}
+		if (!this.camera)
+			throw new Error("Camera not set. Use setCamera(camera) before using events.");
 	
+		const canvas = this._renderer.domElement;
+		const registry = this._eventRegistry.get(eventType);
+		if (!registry || registry.size === 0) return;
 
-	/**
-	 * Gets or sets the parent of the objects
-	 * 
-	 * @param {Object3D} newParent - new parent object
-	 * @returns {Object3D|ThreeQueryResult} - this object OR the current parent if no params
-	 */
-	parent(newParent) {
+		const frame = ++this._frameCount;
+		const { x, y } = this._mouse;
 
-		// return parent if no params (this acts as a getter)
-		if (!newParent)
-			return this.objects[0]?.parent;
+		// Use cached raycast if valid
+		if (
+			this._raycastCache.frame !== frame ||
+			this._raycastCache.x !== x ||
+			this._raycastCache.y !== y
+		) {
+			const raycaster = new THREE.Raycaster();
+			raycaster.setFromCamera({ x, y }, this.camera);	// Assumes camera is available
 
-		// NOTE: todo, change this to use the parent of the first object
-		const rawParent = newParent instanceof ThreeQueryResult ? newParent.objects[0] : newParent;
-		this.each(obj => rawParent.add(obj));
-		return this;
+			this._raycastCache.results = raycaster.intersectObjects(this.scene.children, true);
+			this._raycastCache.frame = frame;
+			this._raycastCache.x = x;
+			this._raycastCache.y = y;
+		}
+
+		const hits = this._raycastCache.results;
+
+		// Dispatch events to objects registered for this type
+		for (const hit of hits) {
+			const obj = hit.object;
+			if (!registry.has(obj)) continue;
+
+			const callbacks = registry.get(obj);
+			if (!callbacks) continue;
+
+			const evt = new ThreeQueryEvent({
+				object: obj,
+				root: this,
+				originalEvent: domEvent,
+				raycast: hit,
+				x,
+				y
+			});
+
+			for (const cb of callbacks)
+				cb(evt);
+		}
+
+		// Handle mouseenter/mouseleave (only on mousemove)
+		if (eventType === 'mousemove')
+			this._handleEnterLeave(hits, domEvent);
 	}
 
 
-	/**
-	 * Clones this result
-	 * 
-	 * @returns {ThreeQueryResult} - a new ThreeQueryResult object with cloned objects
-	 */
-	clone() {
+	_handleEnterLeave(currentHits, domEvent) {
 
-		// clone the objects and return a new ThreeQueryResult object
-		const clones = this.objects.map(o => o.clone(true));
-		return new ThreeQueryResult(clones, this.root);
+		const currentSet = new Set(currentHits.map(hit => hit.object));
+		const entered = new Set();
+		const left = new Set();
+
+		// Detect entered
+		for (const obj of currentSet) {
+			if (!this._lastIntersections.has(obj))
+				entered.add(obj);
+		}
+
+		// Detect left
+		for (const obj of this._lastIntersections) {
+			if (!currentSet.has(obj))
+				left.add(obj);
+		}
+
+		// Update last state
+		this._lastIntersections = currentSet;
+
+		// Dispatch enter
+		const enterRegistry = this._eventRegistry.get('mouseenter');
+		if (enterRegistry) {
+			for (const obj of entered) {
+				const callbacks = enterRegistry.get(obj);
+				if (!callbacks) continue;
+
+				const hit = currentHits.find(h => h.object === obj);
+				const evt = new ThreeQueryEvent({
+					object: obj,
+					root: this,
+					originalEvent: domEvent,
+					raycast: hit,
+					x: this._mouse.x,
+					y: this._mouse.y
+				});
+
+				for (const cb of callbacks)
+					cb(evt);
+			}
+		}
+
+		// Dispatch leave
+		const leaveRegistry = this._eventRegistry.get('mouseleave');
+		if (leaveRegistry) {
+			for (const obj of left) {
+				const callbacks = leaveRegistry.get(obj);
+				if (!callbacks) continue;
+
+				const evt = new ThreeQueryEvent({
+					object: obj,
+					root: this,
+					originalEvent: domEvent,
+					raycast: null,
+					x: this._mouse.x,
+					y: this._mouse.y
+				});
+
+				for (const cb of callbacks)
+					cb(evt);
+			}
+		}
 	}
 
 
-	/**
-	 * Getter for the objects in this result
-	 * 
-	 * @returns {Array} - array of objects in this result
-	 */
-	object() {
+	destroy() {
+		if (!this._renderer) return;
 
-		// if we only have one object, return it directly
-		if(this.objects.length === 1)
-			return this.objects[0];
+		const canvas = this._renderer.domElement;
 
-		// otherwise, return the array of objects
-		return this.objects;
+		// Remove all listeners
+		canvas.removeEventListener('mousemove', this._boundMouseMove);
+		['click', 'dblclick', 'mousedown', 'mouseup', 'wheel'].forEach(eventType => {
+			canvas.removeEventListener(eventType, this._boundEvents?.[eventType]);
+		});
+
+		// Clear internal references
+		this._eventRegistry.clear();
+		this._lastIntersections.clear();
+		this._raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this._mouse = { x: 0, y: 0 };
+		this._renderer = null;
+		this._boundMouseMove = null;
+		this._boundEvents = null;
 	}
+
+
 }
+
 
 /**
  * Creates a basic Three.js scene with optional helpers.
@@ -564,14 +463,14 @@ class ThreeQueryResult {
  * @param {Object} options - Optional configuration
  * @returns {Object} scene setup (scene, renderer, controls, cube, lights, etc.)
  */
-ThreeQuery.createScene = function(container, {
-		autoSize = true,
-		autoRender = true,
-		onRender = null,
-		addCube = false,
-		addLights = false,
-		addControls = false
-	} = {}){
+ThreeQuery.createScene = function (container, {
+	autoSize = true,
+	autoRender = true,
+	onRender = null,
+	addCube = false,
+	addLights = false,
+	addControls = false
+} = {}) {
 
 	// Basic setup
 	const scene = new THREE.Scene();
@@ -592,7 +491,8 @@ ThreeQuery.createScene = function(container, {
 			camera.aspect = width / height;
 			camera.updateProjectionMatrix();
 			renderer.setSize(width, height);
-			if (autoRender) renderer.render(scene, camera);
+			if (autoRender)
+				renderer.render(scene, camera);
 		};
 
 		// Always use ResizeObserver — it's reliable
