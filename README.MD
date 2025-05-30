@@ -1,5 +1,45 @@
 # 🎯 ThreeQuery
 
+## [https://orokro.github.io/ThreeQuery/](https://orokro.github.io/ThreeQuery/)
+
+
+# 🥜 In a Nutshell
+
+Imagine in Blender you build a scene hierarchy:
+
+![image](https://orokro.github.io/ThreeQuery/img/blender_screen.png)
+
+Notice how you can add `#id-names` and `.class-names` to objects, just by adding to their name in Blender:
+
+(or your application of choice*)
+
+![image](https://orokro.github.io/ThreeQuery/img/blender_names.png)
+
+After you export the Blender scene as `MonkeyScene.glb`, you can then import using ThreeQuery, like so:
+
+![image](https://orokro.github.io/ThreeQuery/img/load_monkeys.png)
+
+By using the `.loadGeometry` method, all the loaded objects are scanned for the `#id-names` and `.class-names` provided in the Blender scene hierarchy.
+
+Now you can do easy & fun stuff, with jQuery like syntax:
+
+![image](https://orokro.github.io/ThreeQuery/img/code_sample.png)
+
+_*Note: in order for ThreeQuery to find the #id-names and .class-names in your scene, you need to add them to the name of the objects in your 3D application of choice. When you export the file, they must appear on the "userData.name" field of the imported ThreeJS model. Exporting a GLTF/GLB from Blender does this by default, other applications may or may not._
+
+
+# 📋 Tutorial
+
+Below is a YouTube video tutorial, showing how to build a scene in Blender & load it with ThreeQuery:
+
+[![ThreeQuery Full Tutorial!
+](https://img.youtube.com/vi/pdj98sUquEM/0.jpg)](https://www.youtube.com/watch?v=pdj98sUquEM)
+
+
+---
+
+# 📖 Docs 
+
 **ThreeQuery** is a jQuery-inspired selector and utility library for [Three.js](https://threejs.org), making it easier to load, query, and manipulate 3D objects in your scene using CSS-like syntax. This was built and tested using Blender to export GLTF/GLB files, other applications may not be compatible.
 
 Built for developers and artists working with tools like Blender, it lets you attach selectors (`#id`, `.class`) to object names and control them in a fluent, chainable, and expressive way — just like jQuery, but in 3D.
