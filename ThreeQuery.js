@@ -44,9 +44,8 @@ class ThreeQuery {
 		this.mouse = { x: 0, y: 0 };
 
 		// we'll store the last raycast results here to avoid recalculating them
-		this.raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this.raycastCache = { x: null, y: null, results: [] };
 		this.lastIntersections = new Set();
-		this.frameCount = 0;
 
 		// we'll need these for raycasting, but are optional if user doesn't want events
 		this.renderer = null;
@@ -100,6 +99,20 @@ class ThreeQuery {
 			this._boundEvents[eventType] = (e) => this._handleMouseEvent(eventType, e);
 			canvas.addEventListener(eventType, this._boundEvents[eventType]);
 		});
+
+		// we should clear our cache after each render, so we don't keep stale raycast results
+		const prevHook = renderer.onAfterRender;
+		renderer.onAfterRender = () => {
+
+			// if someone else set a hook, call it
+			if (prevHook)
+				prevHook();
+
+			this.raycastCache.results = [];
+			this.raycastCache.x = null;
+			this.raycastCache.y = null;
+		};
+
 	}
 
 
@@ -335,15 +348,11 @@ class ThreeQuery {
 		if ((!registry || registry.size === 0) && eventType !== 'mousemove')
 			return;
 
-		// used for preventing duplicate raycasts in the same frame
-		const frame = ++this.frameCount;
-
 		// get the mouse position over the canvas where it was last
 		const { x, y } = this.mouse;
 
 		// Use cached raycast if valid
 		if (
-			this.raycastCache.frame !== frame ||
 			this.raycastCache.x !== x ||
 			this.raycastCache.y !== y
 		) {
@@ -352,7 +361,6 @@ class ThreeQuery {
 
 			// save the raycast results in our cache
 			this.raycastCache.results = raycaster.intersectObjects(this.scene.children, true);
-			this.raycastCache.frame = frame;
 			this.raycastCache.x = x;
 			this.raycastCache.y = y;
 		}
@@ -399,10 +407,9 @@ class ThreeQuery {
 			});
 
 			// Dispatch the event to all callbacks registered for this object and event type
-			for (const cb of callbacks)
-				cb(evt);
+			this._dispatchCallbacks(callbacks, evt, eventType);
+			
 		}// next hit
-
 	}
 
 
@@ -424,7 +431,6 @@ class ThreeQuery {
 			if (!this.lastIntersections.has(obj))
 				entered.add(obj);
 		
-
 		// Detect left
 		for (const obj of this.lastIntersections)
 			if (!currentSet.has(obj))
@@ -457,8 +463,7 @@ class ThreeQuery {
 				});
 
 				// Dispatch the event to all callbacks registered for this object
-				for (const cb of callbacks)
-					cb(evt);
+				this._dispatchCallbacks(callbacks, evt, 'mouseenter');
 
 			}// next obj
 		}
@@ -486,12 +491,31 @@ class ThreeQuery {
 				});
 
 				// Dispatch the event to all callbacks registered for this object
-				for (const cb of callbacks)
-					cb(evt);
+				this._dispatchCallbacks(callbacks, evt, 'mouseleave');				
 
 			}// next obj
 		}
 	}
+
+
+	/**
+	 * Dispatches callbacks for a given event type.
+	 * 
+	 * @param {Set<Function>} callbacks - set of callbacks
+	 * @param {ThreeQueryEvent} evt - event object to dispatch
+	 * @param {String} type - type of event (e.g., 'click', 'mousemove', etc.)
+	 */
+	_dispatchCallbacks(callbacks, evt, type) {
+
+		// loop through all callbacks and call them with the event
+		for (const cb of callbacks)
+			try {
+				cb(evt);
+			} catch (err) {
+				console.error(`ThreeQuery: error in ${type} callback:`, err);
+			}
+	}
+
 
 	/**
 	 * Cleans up the ThreeQuery instance, removing all event listeners and clearing internal state.
@@ -512,13 +536,12 @@ class ThreeQuery {
 		// Clear internal references
 		this.eventRegistry.clear();
 		this.lastIntersections.clear();
-		this.raycastCache = { frame: -1, x: null, y: null, results: [] };
+		this.raycastCache = { x: null, y: null, results: [] };
 		this.mouse = { x: 0, y: 0 };
 		this.renderer = null;
 		this._boundMouseMove = null;
 		this._boundEvents = null;
 	}
-
 }
 
 
