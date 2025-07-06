@@ -33,7 +33,7 @@
 	},
 	"homepage": "https://github.com/orokro/ThreeQuery#readme",
 	"peerDependencies": {
-		"three": "^0.176.0"
+		"three": ">=0.176.0 <1.0.0"
 	},
 	"devDependencies": {
 		"three": "^0.176.0",
