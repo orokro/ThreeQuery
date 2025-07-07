@@ -552,17 +552,31 @@ class ThreeQuery {
  * @param {Object} options - Optional configuration
  * @returns {Object} scene setup (scene, renderer, controls, cube, lights, etc.)
  */
-ThreeQuery.createScene = function (container, {
+ThreeQuery.createScene = function (container, options = {}) {
+
+	// Basic setup
+	const scene = new THREE.Scene();
+	return ThreeQuery.useScene(scene, container, options);
+}
+
+
+/**
+ * Inits library with existing scene.
+ * 
+ * @param {THREE.Scene} scene - Three.js scene to use
+ * @param {HTMLElement} container - DOM element to mount renderer into.
+ * @param {Object} options - Optional configuration
+ * @returns {Object} scene setup (scene, renderer, controls, cube, lights, etc.)
+ */
+ThreeQuery.useScene = function (scene, container, {
 	autoSize = true,
 	autoRender = true,
 	onRender = null,
 	addCube = false,
 	addLights = false,
 	addControls = false
-} = {}) {
+} = {}){
 
-	// Basic setup
-	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
 	camera.position.set(0, 0, 3);
 

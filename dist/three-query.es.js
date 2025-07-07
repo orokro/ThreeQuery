@@ -1,6 +1,6 @@
 import * as f from "three";
 import { Controls as v, Vector3 as b, MOUSE as P, TOUCH as w, Quaternion as L, Spherical as A, Vector2 as _, Ray as Y, Plane as z, MathUtils as I } from "three";
-const x = { type: "change" }, O = { type: "start" }, N = { type: "end" }, S = new Y(), k = new z(), U = Math.cos(70 * I.DEG2RAD), u = new b(), d = 2 * Math.PI, l = {
+const x = { type: "change" }, O = { type: "start" }, N = { type: "end" }, T = new Y(), k = new z(), U = Math.cos(70 * I.DEG2RAD), u = new b(), d = 2 * Math.PI, l = {
   NONE: -1,
   ROTATE: 0,
   DOLLY: 1,
@@ -109,7 +109,7 @@ class Z extends v {
         c.unproject(this.object), this.object.position.sub(c).add(r), this.object.updateMatrixWorld(), h = u.length();
       } else
         console.warn("WARNING: OrbitControls.js encountered an unknown camera type - zoom to cursor disabled."), this.zoomToCursor = !1;
-      h !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(h).add(this.object.position) : (S.origin.copy(this.object.position), S.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(S.direction)) < U ? this.object.lookAt(this.target) : (k.setFromNormalAndCoplanarPoint(this.object.up, this.target), S.intersectPlane(k, this.target))));
+      h !== null && (this.screenSpacePanning ? this.target.set(0, 0, -1).transformDirection(this.object.matrix).multiplyScalar(h).add(this.object.position) : (T.origin.copy(this.object.position), T.direction.set(0, 0, -1).transformDirection(this.object.matrix), Math.abs(this.object.up.dot(T.direction)) < U ? this.object.lookAt(this.target) : (k.setFromNormalAndCoplanarPoint(this.object.up, this.target), T.intersectPlane(k, this.target))));
     } else if (this.object.isOrthographicCamera) {
       const h = this.object.zoom;
       this.object.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.object.zoom / this._scale)), h !== this.object.zoom && (this.object.updateProjectionMatrix(), o = !0);
@@ -682,7 +682,7 @@ class j {
     this.target = new g([t], e), this.originalEvent = s, this.raycast = i, this.time = (s == null ? void 0 : s.timeStamp) || performance.now(), this.x = o, this.y = h, this.button = (s == null ? void 0 : s.button) ?? null, this.deltaY = (s == null ? void 0 : s.deltaY) ?? null;
   }
 }
-class T {
+class D {
   /**
    * Constructors new ThreeQuery system
    * 
@@ -751,7 +751,7 @@ class T {
   scan(t) {
     t.traverse((e) => {
       if (!e.userData.name) return;
-      const { id: s, classes: i } = T.parseName(e.userData.name);
+      const { id: s, classes: i } = D.parseName(e.userData.name);
       s && (this.idMap.has(s) || this.idMap.set(s, []), this.idMap.get(s).push(e));
       for (let o of i)
         this.classMap.has(o) || this.classMap.set(o, []), this.classMap.get(o).push(e);
@@ -803,7 +803,7 @@ class T {
       return o.forEach((c) => {
         c.children.forEach((p) => {
           p.traverse((m) => {
-            T.matches(m, r) && n.add(m);
+            D.matches(m, r) && n.add(m);
           });
         });
       }), i(n, h + 1);
@@ -894,7 +894,7 @@ class T {
         const c = h.get(n);
         if (!c)
           continue;
-        const p = t.find((D) => D.object === n), m = new j({
+        const p = t.find((S) => S.object === n), m = new j({
           object: n,
           root: this,
           originalEvent: e,
@@ -949,54 +949,58 @@ class T {
     }), this.eventRegistry.clear(), this.lastIntersections.clear(), this.raycastCache = { x: null, y: null, results: [] }, this.mouse = { x: 0, y: 0 }, this.renderer = null, this._boundMouseMove = null, this._boundEvents = null;
   }
 }
-T.createScene = function(a, {
-  autoSize: t = !0,
-  autoRender: e = !0,
-  onRender: s = null,
-  addCube: i = !1,
-  addLights: o = !1,
-  addControls: h = !1
+D.createScene = function(a, t = {}) {
+  const e = new f.Scene();
+  return D.useScene(e, a, t);
+};
+D.useScene = function(a, t, {
+  autoSize: e = !0,
+  autoRender: s = !0,
+  onRender: i = null,
+  addCube: o = !1,
+  addLights: h = !1,
+  addControls: r = !1
 } = {}) {
-  const r = new f.Scene(), n = new f.PerspectiveCamera(75, a.clientWidth / a.clientHeight, 0.1, 1e3);
+  const n = new f.PerspectiveCamera(75, t.clientWidth / t.clientHeight, 0.1, 1e3);
   n.position.set(0, 0, 3);
   const c = new f.WebGLRenderer({ antialias: !0 });
-  c.setSize(a.clientWidth, a.clientHeight), a.appendChild(c.domElement);
+  c.setSize(t.clientWidth, t.clientHeight), t.appendChild(c.domElement);
   let p = null;
-  if (t) {
+  if (e) {
     const y = () => {
-      const E = a.clientWidth, M = a.clientHeight;
-      n.aspect = E / M, n.updateProjectionMatrix(), c.setSize(E, M), e && c.render(r, n);
+      const E = t.clientWidth, M = t.clientHeight;
+      n.aspect = E / M, n.updateProjectionMatrix(), c.setSize(E, M), s && c.render(a, n);
     };
-    p = new ResizeObserver(y), p.observe(a);
+    p = new ResizeObserver(y), p.observe(t);
   }
   let m = null;
-  h && (m = new Z(n, c.domElement), m.enableDamping = !0);
-  let D = null;
-  if (o) {
+  r && (m = new Z(n, c.domElement), m.enableDamping = !0);
+  let S = null;
+  if (h) {
     const y = new f.AmbientLight(16777215, 0.6), E = new f.DirectionalLight(16777215, 0.8);
-    E.position.set(5, 5, 5), r.add(y, E), D = { ambientLight: y, directionalLight: E };
+    E.position.set(5, 5, 5), a.add(y, E), S = { ambientLight: y, directionalLight: E };
   }
   let C = null;
-  if (i) {
+  if (o) {
     const y = new f.BoxGeometry(), E = new f.MeshStandardMaterial({ color: "red" }), M = new f.Mesh(y, E);
-    M.userData.name = "#defaultCube .red .box", r.add(M), C = { geometry: y, material: E, object: M };
+    M.userData.name = "#defaultCube .red .box", a.add(M), C = { geometry: y, material: E, object: M };
   }
-  if (e) {
+  if (s) {
     let y = function() {
-      requestAnimationFrame(y), s && s(), m && m.update(), c.render(r, n);
+      requestAnimationFrame(y), i && i(), m && m.update(), c.render(a, n);
     };
     y();
   }
   return {
-    scene: r,
+    scene: a,
     renderer: c,
     camera: n,
     controls: m,
     cube: C,
-    lights: D,
+    lights: S,
     resizeObserver: p
   };
 };
 export {
-  T as default
+  D as default
 };
